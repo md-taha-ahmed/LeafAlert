@@ -28,6 +28,11 @@ def prediction(image_path):
 
 app = Flask(__name__)
 
+@app.route('/new/')
+def new_home_page():
+    return render_template('html/index.html')
+    
+
 @app.route('/')
 def home_page():
     return render_template('home.html')
@@ -69,4 +74,5 @@ def market():
                            supplement_name = list(supplement_info['supplement name']), disease = list(disease_info['disease_name']), buy = list(supplement_info['buy link']))
 
 if __name__ == '__main__':
+    
     app.run(debug=True)
