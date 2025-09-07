@@ -57,50 +57,37 @@ def prediction(image_path, plant_type):
 # Flask app
 app = Flask(__name__)
 
-@app.route('/new/')
-def new_home_page():
-    return render_template('html/index.html')
-    
+@app.route('/api/predict', methods=['POST'])
+def predict_api():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image provided'}), 400
+    if 'plantType' not in request.form:
+        return jsonify({'error': 'No plant type provided'}), 400
 
-@app.route('/')
-def home_page():
-    return render_template('home.html')
+    plant_type = request.form['plantType'].lower()
+    image = request.files['image']
+    filename = image.filename
+    file_path = os.path.join('uploads', filename)
 
-@app.route('/contact')
-def contact():
-    return render_template('contact-us.html')
+    os.makedirs('uploads', exist_ok=True)
+    image.save(file_path)
 
-@app.route('/index')
-def ai_engine_page():
-    return render_template('index.html')
+    try:
+        pred = prediction(file_path, plant_type)
 
-@app.route('/mobile-device')
-def mobile_device_detected_page():
-    return render_template('mobile-device.html')
+        result = {
+            'diseaseName': disease_info['disease_name'][pred],
+            'description': disease_info['description'][pred],
+            'prevention': disease_info['Possible Steps'][pred],
+            # 'diseaseImageUrl': disease_info['image_url'][pred],
+            'supplementName': supplement_info['supplement name'][pred],
+            # 'supplementImageUrl': supplement_info['supplement image'][pred],
+            # 'supplementBuyLink': supplement_info['buy link'][pred],
+        }
 
-@app.route('/submit', methods=['GET', 'POST'])
-def submit():
-    if request.method == 'POST':
-        image = request.files['image']
-        filename = image.filename
-        file_path = os.path.join('static/uploads', filename)
-        image.save(file_path)
-        print(file_path)
-        pred = prediction(file_path)
-        title = disease_info['disease_name'][pred]
-        description =disease_info['description'][pred]
-        prevent = disease_info['Possible Steps'][pred]
-        image_url = disease_info['image_url'][pred]
-        supplement_name = supplement_info['supplement name'][pred]
-        supplement_image_url = supplement_info['supplement image'][pred]
-        supplement_buy_link = supplement_info['buy link'][pred]
-        return render_template('submit.html' , title = title , desc = description , prevent = prevent , 
-                               image_url = image_url , pred = pred ,sname = supplement_name , simage = supplement_image_url , buy_link = supplement_buy_link)
-
-@app.route('/market', methods=['GET', 'POST'])
-def market():
-    return render_template('market.html', supplement_image = list(supplement_info['supplement image']),
-                           supplement_name = list(supplement_info['supplement name']), disease = list(disease_info['disease_name']), buy = list(supplement_info['buy link']))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
