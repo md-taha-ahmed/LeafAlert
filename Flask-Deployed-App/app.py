@@ -28,26 +28,6 @@ def prediction(image_path):
 
 app = Flask(__name__)
 
-@app.route('/new/')
-def new_home_page():
-    return render_template('html/index.html')
-    
-
-@app.route('/')
-def home_page():
-    return render_template('home.html')
-
-@app.route('/contact')
-def contact():
-    return render_template('contact-us.html')
-
-@app.route('/index')
-def ai_engine_page():
-    return render_template('index.html')
-
-@app.route('/mobile-device')
-def mobile_device_detected_page():
-    return render_template('mobile-device.html')
 
 @app.route('/submit', methods=['GET', 'POST'])
 def submit():
